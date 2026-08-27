@@ -13,8 +13,6 @@ SAVED="`pwd`"
 cd "`dirname \"$PRG\"`/" >/dev/null
 APP_HOME="`pwd -P`"
 cd "$SAVED" >/dev/null
-APP_HOME="${APP_HOME}/.."
-APP_HOME="$(cd "${APP_HOME}" && pwd)"
 CLASSPATH=$APP_HOME/gradle/wrapper/gradle-wrapper.jar
 
 if [ -n "$JAVA_HOME" ]; then
