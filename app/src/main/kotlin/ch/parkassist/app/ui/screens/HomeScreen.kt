@@ -13,12 +13,11 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.weight
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ErrorOutline
+import androidx.compose.material.icons.filled.Error
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -37,7 +36,6 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.menuAnchor
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -351,7 +349,7 @@ private fun ParkingStatusCard(state: ParkingState, stateLabel: String) {
             ) {
                 if (state is ParkingState.Error) {
                     androidx.compose.material3.Icon(
-                        imageVector = Icons.Filled.ErrorOutline,
+                        imageVector = Icons.Filled.Error,
                         contentDescription = stringResource(R.string.content_desc_error_status),
                         tint = accent,
                     )
@@ -443,7 +441,7 @@ private fun ValidationErrorCard(errorMessage: String) {
             horizontalArrangement = Arrangement.spacedBy(10.dp),
         ) {
             androidx.compose.material3.Icon(
-                imageVector = Icons.Filled.ErrorOutline,
+                imageVector = Icons.Filled.Error,
                 contentDescription = stringResource(R.string.content_desc_validation_error),
                 tint = MaterialTheme.colorScheme.onErrorContainer,
             )

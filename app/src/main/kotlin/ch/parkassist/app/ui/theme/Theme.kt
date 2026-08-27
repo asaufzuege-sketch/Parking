@@ -2,12 +2,12 @@ package ch.parkassist.app.ui.theme
 
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Shapes
 import androidx.compose.material3.Surface
-import androidx.compose.material3.TextButtonDefaults
 import androidx.compose.material3.TopAppBarColors
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.Typography
@@ -173,6 +173,7 @@ fun ParkingTheme(content: @Composable () -> Unit) {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun parkingTopAppBarColors(): TopAppBarColors = TopAppBarDefaults.topAppBarColors(
     containerColor = MaterialTheme.colorScheme.surface,
@@ -199,7 +200,7 @@ fun parkingDestructiveButtonColors() = ButtonDefaults.buttonColors(
 )
 
 @Composable
-fun parkingTextButtonColors() = TextButtonDefaults.textButtonColors(
+fun parkingTextButtonColors() = ButtonDefaults.textButtonColors(
     contentColor = MaterialTheme.colorScheme.primary,
     disabledContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
 )
