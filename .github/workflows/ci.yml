@@ -1,0 +1,59 @@
+name: CI – Lint & Unit Tests
+
+on:
+  push:
+    branches: [ main, "copilot/**" ]
+  pull_request:
+    branches: [ main ]
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-test:
+    name: Build, Lint & Test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: gradle
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Lint – app
+        run: ./gradlew :app:lint
+
+      - name: Lint – mockparking
+        run: ./gradlew :mockparking:lint
+
+      - name: Unit tests – app
+        run: ./gradlew :app:testDebugUnitTest
+
+      - name: Unit tests – mockparking
+        run: ./gradlew :mockparking:testDebugUnitTest
+
+      - name: Upload lint reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lint-reports
+          path: |
+            app/build/reports/lint-results*.html
+            mockparking/build/reports/lint-results*.html
+
+      - name: Upload test reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-reports
+          path: |
+            app/build/reports/tests/
+            mockparking/build/reports/tests/

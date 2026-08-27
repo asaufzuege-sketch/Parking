@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Mock Parking</string>
+    <string name="btn_confirm_start">Parkvorgang starten (Mock)</string>
+    <string name="btn_confirm_extend">Verlängerung bestätigen (Mock)</string>
+    <string name="btn_confirm_stop">Parkvorgang beenden (Mock)</string>
+    <string name="btn_error">Fehler simulieren</string>
+    <string name="btn_deny_extension">Verlängerung ablehnen</string>
+    <string name="label_zone">Zone</string>
+    <string name="label_plate">Kennzeichen</string>
+    <string name="label_duration">Dauer</string>
+    <string name="mock_title">Mock Parking</string>
+    <string name="mock_prefilled">Vorausgefüllte Daten</string>
+</resources>
