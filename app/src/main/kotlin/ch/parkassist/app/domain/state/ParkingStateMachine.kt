@@ -1,6 +1,5 @@
 package ch.parkassist.app.domain.state
 
-import ch.parkassist.app.domain.model.ParkingSession
 import java.time.Instant
 
 /**
@@ -33,6 +32,17 @@ object ParkingStateMachine {
                     .plusSeconds((current.session.ticketDurationMinutes * 60).toLong())
                 ParkingState.Active(current.session, expires)
             }
+
+            current is ParkingState.AwaitingUser && event is ParkingEvent.ManualOutcomeReported ->
+                when (event.outcome) {
+                    ManualOutcome.CONFIRMED -> {
+                        val expires = Instant.now()
+                            .plusSeconds((current.session.ticketDurationMinutes * 60).toLong())
+                        ParkingState.Active(current.session, expires)
+                    }
+                    ManualOutcome.NOT_COMPLETED -> ParkingState.Cancelled(current.session, Instant.now())
+                    ManualOutcome.UNCLEAR -> ParkingState.Error(current.session, "Ergebnis unklar – bitte manuell prüfen")
+                }
 
             current is ParkingState.AwaitingUser && event is ParkingEvent.TicketActive -> {
                 val expires = Instant.now()
@@ -81,7 +91,7 @@ object ParkingStateMachine {
                 ParkingState.Error(session, event.message)
             }
 
-            else -> current // No valid transition; stay in current state
+            else -> current
         }
     }
 }

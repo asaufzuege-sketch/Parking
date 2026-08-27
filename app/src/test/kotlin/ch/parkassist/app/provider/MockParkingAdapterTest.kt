@@ -1,14 +1,14 @@
 package ch.parkassist.app.provider
 
 import android.content.Intent
-import org.junit.Assert.*
+import org.junit.Assert.assertEquals
 import org.junit.Test
 
 /**
  * Verifies the explicit Intent contract constants shared between ParkingAssistant and MockParking.
  * Uses MockProviderContract (JVM-only, no Android dependency).
  */
-class MockProviderAdapterTest {
+class MockParkingAdapterTest {
 
     @Test
     fun mockPackageIsCorrect() {

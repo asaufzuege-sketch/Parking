@@ -8,23 +8,33 @@ import androidx.lifecycle.viewModelScope
 import ch.parkassist.app.data.db.ParkingDatabase
 import ch.parkassist.app.data.db.SessionEntity
 import ch.parkassist.app.data.repository.ParkingRepository
-import ch.parkassist.app.domain.model.*
+import ch.parkassist.app.domain.model.ActivityLogEntry
+import ch.parkassist.app.domain.model.ParkingSession
+import ch.parkassist.app.domain.model.Provider
+import ch.parkassist.app.domain.model.ZonePolicy
 import ch.parkassist.app.domain.policy.PolicyResult
 import ch.parkassist.app.domain.policy.PolicyValidator
-import ch.parkassist.app.domain.state.*
-import ch.parkassist.app.provider.*
-import kotlinx.coroutines.flow.*
+import ch.parkassist.app.domain.state.ManualOutcome
+import ch.parkassist.app.domain.state.ParkingEvent
+import ch.parkassist.app.domain.state.ParkingState
+import ch.parkassist.app.domain.state.ParkingStateMachine
+import ch.parkassist.app.domain.state.ParkingStateNames
+import ch.parkassist.app.provider.LaunchResult
+import ch.parkassist.app.provider.MockAutomationConfig
+import ch.parkassist.app.provider.MockParkingAdapter
+import ch.parkassist.app.provider.ProviderAction
+import ch.parkassist.app.provider.ProviderRegistry
+import ch.parkassist.app.provider.requireMockAutomation
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.time.Instant
 
-enum class ProviderAction {
-    START,
-    EXTEND,
-    STOP,
-}
-
 private const val PROVIDER_ERROR_MESSAGE = "Anbieter meldet Fehler"
 private const val PROVIDER_UNKNOWN_STATUS_MESSAGE = "Unbekannter Anbieterstatus"
+private const val PROVIDER_MANUAL_UNCLEAR_MESSAGE = "Ergebnis unklar – bitte manuell prüfen"
 private const val RESTORE_INCOMPLETE_PROVIDER_STATE_MESSAGE =
     "Vorheriger Anbieterzustand konnte nicht abgeschlossen werden"
 
@@ -38,6 +48,9 @@ data class ParkingUiState(
     val startNow: Boolean = true,
     val scheduledTime: Instant = Instant.now(),
     val userConfirmed: Boolean = false,
+    val dryRunMode: Boolean = false,
+    val showExperimentalWarning: Boolean = false,
+    val pendingManualOutcome: Boolean = false,
     val validationError: String? = null,
     val pendingLaunchIntent: Intent? = null,
     val pendingProviderAction: ProviderAction? = null,
@@ -75,6 +88,8 @@ class ParkingViewModel(application: Application) : AndroidViewModel(application)
                         pendingLaunchIntent = null,
                         pendingProviderAction = null,
                         stateBeforeProviderLaunch = null,
+                        showExperimentalWarning = false,
+                        pendingManualOutcome = false,
                     )
                 }
             }
@@ -89,6 +104,7 @@ class ParkingViewModel(application: Application) : AndroidViewModel(application)
     fun setStartNow(v: Boolean) = _uiState.update { it.copy(startNow = v) }
     fun setScheduledTime(v: Instant) = _uiState.update { it.copy(scheduledTime = v) }
     fun setUserConfirmed(v: Boolean) = _uiState.update { it.copy(userConfirmed = v) }
+    fun setDryRunMode(enabled: Boolean) = _uiState.update { it.copy(dryRunMode = enabled) }
 
     fun startParking(policy: ZonePolicy = defaultPolicy()) {
         val state = _uiState.value
@@ -145,10 +161,6 @@ class ParkingViewModel(application: Application) : AndroidViewModel(application)
         }
     }
 
-    /**
-     * Transitions to [ParkingState.ExtensionDue] after validating the policy.
-     * The user must then call [confirmExtension] to launch the provider and extend.
-     */
     fun requestExtension(policy: ZonePolicy = defaultPolicy()) {
         val current = _uiState.value.parkingState
         val session = when (current) {
@@ -162,15 +174,10 @@ class ParkingViewModel(application: Application) : AndroidViewModel(application)
             applyStateChange(ParkingState.Error(session, result.reason))
             return
         }
-        // Move to ExtensionDue and wait for explicit user confirmation
         val newState = ParkingStateMachine.transition(current, ParkingEvent.ExtensionRequired)
         applyStateChange(newState)
     }
 
-    /**
-     * Called by the user to explicitly confirm the extension shown in [ParkingState.ExtensionDue].
-     * Launches the provider and waits for result to transition back to [ParkingState.Active].
-     */
     fun confirmExtension() {
         val current = _uiState.value.parkingState
         if (current !is ParkingState.ExtensionDue) return
@@ -190,9 +197,100 @@ class ParkingViewModel(application: Application) : AndroidViewModel(application)
 
     fun resetError() {
         val newState = ParkingStateMachine.transition(
-            _uiState.value.parkingState, ParkingEvent.Reset
+            _uiState.value.parkingState,
+            ParkingEvent.Reset
         )
         applyStateChange(newState)
+    }
+
+    fun dismissExperimentalWarning(confirmed: Boolean) {
+        val state = _uiState.value
+        if (confirmed) {
+            _uiState.update { it.copy(showExperimentalWarning = false) }
+            return
+        }
+
+        val currentState = state.parkingState
+        when {
+            state.pendingProviderAction == ProviderAction.START -> {
+                applyStateChange(ParkingStateMachine.transition(currentState, ParkingEvent.ProviderCancelled))
+            }
+            state.stateBeforeProviderLaunch != null -> {
+                applyStateChange(state.stateBeforeProviderLaunch)
+            }
+        }
+        _uiState.update {
+            it.copy(
+                showExperimentalWarning = false,
+                pendingLaunchIntent = null,
+                pendingProviderAction = null,
+                stateBeforeProviderLaunch = null,
+                pendingManualOutcome = false,
+            )
+        }
+    }
+
+    fun reportManualOutcome(outcome: ManualOutcome) {
+        val state = _uiState.value
+        val current = state.parkingState
+        val session = sessionFromState(current)
+        val action = state.pendingProviderAction
+        val stateBeforeProviderLaunch = state.stateBeforeProviderLaunch
+
+        if (session == null) {
+            _uiState.update {
+                it.copy(
+                    pendingManualOutcome = false,
+                    pendingProviderAction = null,
+                    stateBeforeProviderLaunch = null,
+                )
+            }
+            return
+        }
+
+        when (action) {
+            ProviderAction.START, null -> {
+                applyStateChange(ParkingStateMachine.transition(current, ParkingEvent.ManualOutcomeReported(outcome)))
+            }
+            ProviderAction.EXTEND -> when (outcome) {
+                ManualOutcome.CONFIRMED -> {
+                    applyStateChange(ParkingStateMachine.transition(current, ParkingEvent.ProviderConfirmed))
+                }
+                ManualOutcome.NOT_COMPLETED -> {
+                    applyStateChange(stateBeforeProviderLaunch ?: ParkingState.Active(session, session.startTime))
+                }
+                ManualOutcome.UNCLEAR -> {
+                    applyStateChange(ParkingState.Error(session, PROVIDER_MANUAL_UNCLEAR_MESSAGE))
+                }
+            }
+            ProviderAction.STOP -> when (outcome) {
+                ManualOutcome.CONFIRMED -> {
+                    applyStateChange(ParkingState.Completed(session, Instant.now()))
+                }
+                ManualOutcome.NOT_COMPLETED -> {
+                    applyStateChange(stateBeforeProviderLaunch ?: ParkingState.Active(session, session.startTime))
+                }
+                ManualOutcome.UNCLEAR -> {
+                    applyStateChange(ParkingState.Error(session, PROVIDER_MANUAL_UNCLEAR_MESSAGE))
+                }
+            }
+        }
+
+        log(session.id, "ManualOutcome", "${session.provider.name}:${action?.name ?: "START"}:${outcome.name}")
+        _uiState.update {
+            it.copy(
+                pendingManualOutcome = false,
+                pendingProviderAction = null,
+                stateBeforeProviderLaunch = null,
+                pendingLaunchIntent = null,
+            )
+        }
+    }
+
+    fun runMockAutomation(config: MockAutomationConfig) {
+        requireMockAutomation(uiState.value.provider)
+        log(0, "MockAutomation", "repetitions=${config.repetitions}, intervalSeconds=${config.intervalSeconds}")
+        startParking()
     }
 
     fun clearLog() {
@@ -206,9 +304,22 @@ class ParkingViewModel(application: Application) : AndroidViewModel(application)
         val session = sessionFromState(state)
         val action = _uiState.value.pendingProviderAction
         val stateBeforeProviderLaunch = _uiState.value.stateBeforeProviderLaunch
+        val adapter = session?.let { ProviderRegistry.adapterFor(it.provider) }
+
+        if (adapter?.capabilities?.requiresManualHandoff == true) {
+            _uiState.update {
+                it.copy(
+                    pendingManualOutcome = true,
+                    pendingLaunchIntent = null,
+                    showExperimentalWarning = false,
+                )
+            }
+            log(session.id, "ManualHandoffReturned", "${session.provider.name}:${action?.name ?: "UNKNOWN"}")
+            return
+        }
 
         when {
-            resultCode == Activity.RESULT_OK && status == MockProviderAdapter.STATUS_CONFIRMED -> {
+            resultCode == Activity.RESULT_OK && status == MockParkingAdapter.STATUS_CONFIRMED -> {
                 when (action) {
                     ProviderAction.STOP -> {
                         if (session != null) {
@@ -222,14 +333,14 @@ class ParkingViewModel(application: Application) : AndroidViewModel(application)
                     }
                 }
             }
-            resultCode == Activity.RESULT_OK && status == MockProviderAdapter.STATUS_DENIED -> {
+            resultCode == Activity.RESULT_OK && status == MockParkingAdapter.STATUS_DENIED -> {
                 if (action == ProviderAction.STOP && stateBeforeProviderLaunch != null) {
                     applyStateChange(stateBeforeProviderLaunch)
                 } else {
                     applyStateChange(ParkingStateMachine.transition(state, ParkingEvent.ProviderDenied))
                 }
             }
-            resultCode == Activity.RESULT_OK && status == MockProviderAdapter.STATUS_ERROR -> {
+            resultCode == Activity.RESULT_OK && status == MockParkingAdapter.STATUS_ERROR -> {
                 applyStateChange(
                     ParkingStateMachine.transition(
                         state,
@@ -254,13 +365,42 @@ class ParkingViewModel(application: Application) : AndroidViewModel(application)
             }
         }
 
-        _uiState.update { it.copy(pendingProviderAction = null, stateBeforeProviderLaunch = null) }
+        _uiState.update {
+            it.copy(
+                pendingProviderAction = null,
+                stateBeforeProviderLaunch = null,
+                pendingManualOutcome = false,
+                showExperimentalWarning = false,
+            )
+        }
     }
 
     private fun launchProvider(session: ParkingSession, action: ProviderAction) {
         val context = getApplication<Application>()
         val previousState = _uiState.value.parkingState
         val adapter = ProviderRegistry.adapterFor(session.provider)
+
+        if (_uiState.value.dryRunMode) {
+            val providerState = if (action == ProviderAction.START) {
+                ParkingStateMachine.transition(_uiState.value.parkingState, ParkingEvent.ProviderLaunched)
+            } else {
+                ParkingState.AwaitingUser(session)
+            }
+            applyStateChange(providerState)
+            _uiState.update {
+                it.copy(
+                    pendingProviderAction = action,
+                    stateBeforeProviderLaunch = previousState,
+                    pendingManualOutcome = true,
+                    showExperimentalWarning = false,
+                    pendingLaunchIntent = null,
+                )
+            }
+            log(session.id, "DryRun", adapter.dryRunDescription(session, action))
+            log(session.id, "ProviderMetadata", adapter.logMetadata(session).entries.joinToString())
+            return
+        }
+
         val result = when (action) {
             ProviderAction.START -> adapter.buildStartIntent(context, session)
             ProviderAction.EXTEND -> adapter.buildExtendIntent(context, session)
@@ -268,20 +408,23 @@ class ParkingViewModel(application: Application) : AndroidViewModel(application)
         }
         when (result) {
             is LaunchResult.Success -> {
-                _uiState.update {
-                    it.copy(
-                        pendingLaunchIntent = result.intent,
-                        pendingProviderAction = action,
-                        stateBeforeProviderLaunch = previousState,
-                    )
-                }
                 val providerState = if (action == ProviderAction.START) {
                     ParkingStateMachine.transition(_uiState.value.parkingState, ParkingEvent.ProviderLaunched)
                 } else {
                     ParkingState.AwaitingUser(session)
                 }
+                _uiState.update {
+                    it.copy(
+                        pendingLaunchIntent = result.intent,
+                        pendingProviderAction = action,
+                        stateBeforeProviderLaunch = previousState,
+                        showExperimentalWarning = adapter.capabilities.requiresManualHandoff,
+                        pendingManualOutcome = false,
+                    )
+                }
                 applyStateChange(providerState)
                 log(session.id, "ProviderLaunched", "${session.provider.name}:${action.name}")
+                log(session.id, "ProviderMetadata", adapter.logMetadata(session).entries.joinToString())
             }
             is LaunchResult.NotAvailable -> {
                 applyStateChange(ParkingState.Error(session, result.reason))
@@ -323,7 +466,6 @@ class ParkingViewModel(application: Application) : AndroidViewModel(application)
         is ParkingState.Error -> state.session
     }
 
-    /** Replace the session reference inside a state (used after DB assigns id). */
     private fun ParkingState.withSession(s: ParkingSession): ParkingState = when (this) {
         is ParkingState.Idle -> this
         is ParkingState.Scheduled -> copy(session = s)
@@ -345,7 +487,10 @@ class ParkingViewModel(application: Application) : AndroidViewModel(application)
 }
 
 internal fun SessionEntity.toParkingSession(): ParkingSession {
-    val provider = Provider.entries.firstOrNull { it.name == this.provider } ?: Provider.MOCK
+    val provider = when (this.provider) {
+        "EASYPARK" -> Provider.PARKINGPAY
+        else -> Provider.entries.firstOrNull { it.name == this.provider } ?: Provider.MOCK
+    }
     return ParkingSession(
         id = id,
         provider = provider,

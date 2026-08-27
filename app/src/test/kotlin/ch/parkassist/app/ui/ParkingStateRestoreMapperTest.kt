@@ -47,6 +47,12 @@ class ParkingStateRestoreMapperTest {
         assertEquals(Provider.MOCK, entity.toParkingSession().provider)
     }
 
+    @Test
+    fun `legacy EasyPark provider maps to Parkingpay`() {
+        val entity = sessionEntity(provider = "EASYPARK")
+        assertEquals(Provider.PARKINGPAY, entity.toParkingSession().provider)
+    }
+
     private fun sessionEntity(
         state: String = ParkingStateNames.ACTIVE,
         provider: String = Provider.MOCK.name,

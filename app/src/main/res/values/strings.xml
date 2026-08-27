@@ -4,8 +4,8 @@
 
     <!-- Provider names -->
     <string name="provider_mock">Mock Parking</string>
-    <string name="provider_easypark">EasyPark</string>
-    <string name="provider_twint">TWINT Parking</string>
+    <string name="provider_parkingpay">Parkingpay (manuell)</string>
+    <string name="provider_twint">TWINT Parking (manuell)</string>
 
     <!-- Input labels -->
     <string name="label_provider">Anbieter</string>
@@ -15,12 +15,21 @@
     <string name="label_max_extensions">Max. zulässige Verlängerungen</string>
     <string name="label_start_time">Startzeit</string>
     <string name="label_start_now">Jetzt starten</string>
+    <string name="label_dry_run">Dry-Run aktivieren</string>
 
     <!-- Confirmation -->
     <string name="confirm_title">Bestätigung erforderlich</string>
     <string name="confirm_message">Ich bestätige, dass der gewählte Parkplatz und die Anbieterregeln diese Aktion ausdrücklich erlauben und keine Gratiszeitregel umgangen wird.</string>
     <string name="confirm_button">Bestätigen und starten</string>
     <string name="cancel_button">Abbrechen</string>
+    <string name="experimental_warning_title">Experimenteller Hand-off</string>
+    <string name="experimental_warning_message">Parkingpay und TWINT werden nur manuell via offiziellem App- oder Web-Handoff geöffnet. Bitte im Anbieter prüfen und erst danach das Ergebnis in dieser App bestätigen.</string>
+    <string name="btn_confirm_launch">Handoff öffnen</string>
+    <string name="btn_cancel_launch">Abbrechen</string>
+    <string name="manual_outcome_title">Ergebnis bestätigen</string>
+    <string name="manual_outcome_confirmed">Erfolgreich abgeschlossen</string>
+    <string name="manual_outcome_not_completed">Nicht abgeschlossen</string>
+    <string name="manual_outcome_unclear">Unklar</string>
 
     <!-- Controls -->
     <string name="btn_start">Parkvorgang starten</string>
@@ -63,4 +72,5 @@
     <!-- Misc -->
     <string name="minutes_format">%d Min.</string>
     <string name="extension_count_format">Verlängerung %1$d / %2$d</string>
+    <string name="dry_run_active_hint">Dry-Run führt keinen externen Aufruf aus und dient nur zur sicheren Flow-Prüfung.</string>
 </resources>

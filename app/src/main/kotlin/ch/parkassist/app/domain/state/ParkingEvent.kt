@@ -1,7 +1,6 @@
 package ch.parkassist.app.domain.state
 
 import ch.parkassist.app.domain.model.ParkingSession
-import java.time.Instant
 
 sealed class ParkingEvent {
     data class Start(val session: ParkingSession) : ParkingEvent()
@@ -14,6 +13,8 @@ sealed class ParkingEvent {
     object ExtendConfirmed : ParkingEvent()
     object StopRequested : ParkingEvent()
     object SessionExpired : ParkingEvent()
+    /** User manually reports the outcome after returning from a manual provider. */
+    data class ManualOutcomeReported(val outcome: ManualOutcome) : ParkingEvent()
     data class ErrorOccurred(val message: String) : ParkingEvent()
     object Reset : ParkingEvent()
 }

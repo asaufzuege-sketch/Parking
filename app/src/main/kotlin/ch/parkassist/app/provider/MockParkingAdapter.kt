@@ -5,12 +5,20 @@ import android.content.Intent
 import ch.parkassist.app.domain.model.ParkingSession
 import ch.parkassist.app.domain.model.Provider
 
-/** Package of the local mock provider app. Kept for consumers that reference it by name. */
+/** Package of the local mock provider app. */
 const val MOCK_PACKAGE = MockProviderContract.PACKAGE
 
-object MockProviderAdapter : ProviderAdapter {
-
+/**
+ * Adapter for the repository-owned Mock Parking app (ch.parkassist.mockparking).
+ * Supports deterministic automation in developer/test mode.
+ * This is the ONLY adapter where supportsAutomation = true.
+ */
+object MockParkingAdapter : ProviderAdapter {
     override val provider = Provider.MOCK
+    override val capabilities = ProviderCapabilities(
+        supportsAutomation = true,
+        requiresManualHandoff = false,
+    )
 
     override fun buildStartIntent(context: Context, session: ParkingSession): LaunchResult =
         buildIntent(context, MockProviderContract.ACTION_START, session)
@@ -35,7 +43,18 @@ object MockProviderAdapter : ProviderAdapter {
         else LaunchResult.NotAvailable("Mock Parking App nicht installiert (Paket: ${MockProviderContract.PACKAGE})")
     }
 
-    // Kept for backward compat with tests
+    override fun dryRunDescription(session: ParkingSession, action: ProviderAction): String =
+        "[DRY-RUN] Mock Parking – Aktion: ${action.name}, Zone: ${session.zone}, " +
+            "Dauer: ${session.ticketDurationMinutes} Min. Kein externer Aufruf."
+
+    override fun logMetadata(session: ParkingSession): Map<String, String> = mapOf(
+        "provider" to provider.name,
+        "zone" to session.zone,
+        "durationMinutes" to session.ticketDurationMinutes.toString(),
+        "extensionsUsed" to session.extensionsUsed.toString(),
+    )
+
+    // Backward compat constants (used by UI/tests)
     const val EXTRA_ZONE = MockProviderContract.EXTRA_ZONE
     const val EXTRA_PLATE = MockProviderContract.EXTRA_PLATE
     const val EXTRA_DURATION_MINUTES = MockProviderContract.EXTRA_DURATION_MINUTES

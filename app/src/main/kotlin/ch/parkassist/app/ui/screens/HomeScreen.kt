@@ -2,40 +2,119 @@ package ch.parkassist.app.ui.screens
 
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.ExposedDropdownMenu
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import ch.parkassist.app.R
 import ch.parkassist.app.domain.model.Provider
-import ch.parkassist.app.domain.state.*
-import ch.parkassist.app.provider.MockProviderAdapter
+import ch.parkassist.app.domain.state.ManualOutcome
+import ch.parkassist.app.domain.state.ParkingState
+import ch.parkassist.app.provider.MockParkingAdapter
 import ch.parkassist.app.ui.ParkingViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(vm: ParkingViewModel, onNavigateToLog: () -> Unit) {
     val uiState by vm.uiState.collectAsState()
+    val isManualProvider = uiState.provider != Provider.MOCK
 
-    // Launch provider activity and handle result
     val providerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartActivityForResult()
     ) { result ->
-        val status = result.data?.getStringExtra(MockProviderAdapter.RESULT_STATUS)
+        val status = result.data?.getStringExtra(MockParkingAdapter.RESULT_STATUS)
         vm.handleProviderResult(result.resultCode, status)
     }
 
-    // Trigger intent launch when ViewModel sets it
-    LaunchedEffect(uiState.pendingLaunchIntent) {
-        uiState.pendingLaunchIntent?.let { intent ->
-            providerLauncher.launch(intent)
-            vm.clearPendingIntent()
+    LaunchedEffect(uiState.pendingLaunchIntent, uiState.showExperimentalWarning) {
+        if (!uiState.showExperimentalWarning) {
+            uiState.pendingLaunchIntent?.let { intent ->
+                providerLauncher.launch(intent)
+                vm.clearPendingIntent()
+            }
         }
+    }
+
+    if (uiState.showExperimentalWarning) {
+        AlertDialog(
+            onDismissRequest = { vm.dismissExperimentalWarning(false) },
+            title = { Text(stringResource(R.string.experimental_warning_title)) },
+            text = { Text(stringResource(R.string.experimental_warning_message)) },
+            confirmButton = {
+                TextButton(onClick = { vm.dismissExperimentalWarning(true) }) {
+                    Text(stringResource(R.string.btn_confirm_launch))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { vm.dismissExperimentalWarning(false) }) {
+                    Text(stringResource(R.string.btn_cancel_launch))
+                }
+            }
+        )
+    }
+
+    if (uiState.pendingManualOutcome) {
+        AlertDialog(
+            onDismissRequest = {},
+            title = { Text(stringResource(R.string.manual_outcome_title)) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    if (uiState.dryRunMode) {
+                        Text(stringResource(R.string.dry_run_active_hint))
+                    }
+                    if (isManualProvider) {
+                        Text(manualChecklistText(uiState.provider))
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { vm.reportManualOutcome(ManualOutcome.CONFIRMED) }) {
+                    Text(stringResource(R.string.manual_outcome_confirmed))
+                }
+            },
+            dismissButton = {
+                Row {
+                    TextButton(onClick = { vm.reportManualOutcome(ManualOutcome.UNCLEAR) }) {
+                        Text(stringResource(R.string.manual_outcome_unclear))
+                    }
+                    TextButton(onClick = { vm.reportManualOutcome(ManualOutcome.NOT_COMPLETED) }) {
+                        Text(stringResource(R.string.manual_outcome_not_completed))
+                    }
+                }
+            }
+        )
     }
 
     Scaffold(
@@ -58,7 +137,6 @@ fun HomeScreen(vm: ParkingViewModel, onNavigateToLog: () -> Unit) {
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            // Status card
             val stateLabel = when (val s = uiState.parkingState) {
                 is ParkingState.Idle -> stringResource(R.string.status_idle)
                 is ParkingState.Scheduled -> stringResource(R.string.status_scheduled)
@@ -71,11 +149,15 @@ fun HomeScreen(vm: ParkingViewModel, onNavigateToLog: () -> Unit) {
                 is ParkingState.Error -> "${stringResource(R.string.status_error)}: ${s.message}"
             }
             Card(modifier = Modifier.fillMaxWidth()) {
-                Text(
-                    text = stateLabel,
-                    modifier = Modifier.padding(16.dp),
-                    style = MaterialTheme.typography.titleMedium
-                )
+                Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(text = stateLabel, style = MaterialTheme.typography.titleMedium)
+                    if (uiState.dryRunMode) {
+                        Text(
+                            text = stringResource(R.string.dry_run_active_hint),
+                            style = MaterialTheme.typography.bodySmall,
+                        )
+                    }
+                }
             }
 
             val isIdle = uiState.parkingState is ParkingState.Idle ||
@@ -84,12 +166,15 @@ fun HomeScreen(vm: ParkingViewModel, onNavigateToLog: () -> Unit) {
                 uiState.parkingState is ParkingState.Cancelled
 
             if (isIdle) {
-                // Input form
                 Text(stringResource(R.string.label_provider), style = MaterialTheme.typography.labelMedium)
                 ProviderDropdown(
                     selected = uiState.provider,
                     onSelect = vm::setProvider,
                 )
+
+                if (isManualProvider) {
+                    ManualProviderChecklist(uiState.provider)
+                }
 
                 OutlinedTextField(
                     value = uiState.zone,
@@ -128,7 +213,20 @@ fun HomeScreen(vm: ParkingViewModel, onNavigateToLog: () -> Unit) {
                     Text(stringResource(R.string.label_start_now))
                 }
 
-                // Confirmation checkbox
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Checkbox(
+                        checked = uiState.dryRunMode,
+                        onCheckedChange = vm::setDryRunMode,
+                    )
+                    Column {
+                        Text(stringResource(R.string.label_dry_run))
+                        Text(
+                            text = stringResource(R.string.dry_run_active_hint),
+                            style = MaterialTheme.typography.bodySmall,
+                        )
+                    }
+                }
+
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Checkbox(
                         checked = uiState.userConfirmed,
@@ -160,11 +258,12 @@ fun HomeScreen(vm: ParkingViewModel, onNavigateToLog: () -> Unit) {
                     }
                 }
             } else {
-                // Active session controls
                 val isExtensionDue = uiState.parkingState is ParkingState.ExtensionDue
                 val canRequestExtension = uiState.parkingState is ParkingState.Active
+                if (isManualProvider) {
+                    ManualProviderChecklist(uiState.provider)
+                }
                 if (isExtensionDue) {
-                    // User must explicitly confirm the extension
                     Button(
                         onClick = { vm.confirmExtension() },
                         modifier = Modifier.fillMaxWidth(),
@@ -191,6 +290,28 @@ fun HomeScreen(vm: ParkingViewModel, onNavigateToLog: () -> Unit) {
             }
         }
     }
+}
+
+@Composable
+private fun ManualProviderChecklist(provider: Provider) {
+    Card(modifier = Modifier.fillMaxWidth()) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
+            Text(provider.displayName, style = MaterialTheme.typography.titleSmall)
+            Text(manualChecklistText(provider), style = MaterialTheme.typography.bodySmall)
+        }
+    }
+}
+
+private fun manualChecklistText(provider: Provider): String = when (provider) {
+    Provider.PARKINGPAY ->
+        "1. Parkingpay öffnen\n2. Zone und Dauer prüfen\n3. Aktion manuell abschliessen\n4. Danach Ergebnis hier bestätigen"
+    Provider.TWINT ->
+        "1. TWINT öffnen\n2. Parking-Flow manuell durchführen\n3. Angaben prüfen\n4. Danach Ergebnis hier bestätigen"
+    Provider.MOCK ->
+        "Mock Parking unterstützt den lokalen Test-Flow ohne manuelle Drittanbieter-Schritte."
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
