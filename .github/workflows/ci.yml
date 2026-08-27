@@ -1,4 +1,4 @@
-name: CI – Lint & Unit Tests
+name: CI – Lint, Test & Build
 
 on:
   push:
@@ -23,7 +23,7 @@ jobs:
         with:
           java-version: '17'
           distribution: 'temurin'
-          cache: gradle
+          cache: 'gradle'
 
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
@@ -40,6 +40,9 @@ jobs:
       - name: Unit tests – mockparking
         run: ./gradlew :mockparking:testDebugUnitTest
 
+      - name: Assemble debug APKs
+        run: ./gradlew :app:assembleDebug :mockparking:assembleDebug
+
       - name: Upload lint reports
         if: always()
         uses: actions/upload-artifact@v4
@@ -48,6 +51,7 @@ jobs:
           path: |
             app/build/reports/lint-results*.html
             mockparking/build/reports/lint-results*.html
+          if-no-files-found: warn
 
       - name: Upload test reports
         if: always()
@@ -57,3 +61,16 @@ jobs:
           path: |
             app/build/reports/tests/
             mockparking/build/reports/tests/
+          if-no-files-found: warn
+
+      - name: Upload app debug APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-debug-apk
+          path: app/build/outputs/apk/debug/app-debug.apk
+
+      - name: Upload mockparking debug APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: mockparking-debug-apk
+          path: mockparking/build/outputs/apk/debug/mockparking-debug.apk

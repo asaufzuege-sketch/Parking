@@ -52,6 +52,51 @@ Es wird **keine Accessibility-Automation** auf Drittanbieter-Apps verwendet. Sta
 ./gradlew :app:connectedDebugAndroidTest
 ```
 
+## CI-Artefakte herunterladen und installieren
+
+Nach jedem erfolgreichen CI-Durchlauf (Push auf `main` oder einen `copilot/**`-Branch) werden zwei Debug-APKs als GitHub-Actions-Artefakte hochgeladen:
+
+| Artefakt-Name | Inhalt |
+|---------------|--------|
+| `app-debug-apk` | Parking-Assistent (Haupt-App) |
+| `mockparking-debug-apk` | Mock-Parking-Anbieter |
+
+### Download
+
+1. Gehe zu **Actions** im Repository auf GitHub.
+2. Wähle den gewünschten Workflow-Durchlauf aus.
+3. Scrolle zum Abschnitt **Artifacts** am Ende der Seite.
+4. Lade `app-debug-apk` und `mockparking-debug-apk` herunter und entpacke die ZIP-Dateien.
+
+### Installation via ADB
+
+```bash
+# Mock-Provider zuerst installieren (wird von der Haupt-App benötigt):
+adb install -r mockparking-debug.apk
+
+# Dann Haupt-App installieren:
+adb install -r app-debug.apk
+```
+
+> **Voraussetzung:** USB-Debugging oder Wireless-ADB muss auf dem Gerät aktiviert sein (Einstellungen → Entwickleroptionen → USB-Debugging).
+
+### Mock-Flow starten
+
+1. Öffne **Parking-Assistent** auf dem Gerät.
+2. Wähle als Anbieter **Mock Parking**.
+3. Gib Zone, Kontrollschild und Ticketdauer ein.
+4. Bestätige und tippe **Parkvorgang starten**.
+5. Die Mock-Parking-App öffnet sich mit vorausgefüllten Daten.
+6. Tippe in der Mock-App auf **Bestätigen**.
+7. Der Assistent wechselt in den Status **Aktiv** und zeigt eine Benachrichtigung.
+
+### Probleme melden
+
+Falls die App auf einem bestimmten Gerät oder einer Android-Version nicht korrekt funktioniert, bitte folgende Informationen im Issue angeben:
+- Gerätehersteller und Modell
+- Android-Version (z. B. Android 13 / API 33)
+- Logcat-Ausgabe: `adb logcat -s ParkingAssistant:V MockParking:V`
+
 ## Mock-Flow
 
 1. `mockparking`-App auf dem Gerät installieren.
