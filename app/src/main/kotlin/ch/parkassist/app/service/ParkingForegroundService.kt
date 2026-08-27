@@ -33,9 +33,10 @@ class ParkingForegroundService : Service() {
             else -> {
                 val text = intent?.getStringExtra(EXTRA_STATUS_TEXT) ?: getString(R.string.status_active)
                 startForeground(NOTIF_ID, buildNotification(text))
+                return START_STICKY
             }
         }
-        return START_STICKY
+        return START_NOT_STICKY
     }
 
     private fun buildNotification(contentText: String): Notification {

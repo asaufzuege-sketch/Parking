@@ -5,7 +5,7 @@ import android.content.Intent
 import ch.parkassist.app.domain.model.ParkingSession
 import ch.parkassist.app.domain.model.Provider
 
-/** Package of the local mock provider app. */
+/** Package of the local mock provider app. Kept for consumers that reference it by name. */
 const val MOCK_PACKAGE = MockProviderContract.PACKAGE
 
 object MockProviderAdapter : ProviderAdapter {

@@ -110,6 +110,10 @@ class ParkingViewModel(application: Application) : AndroidViewModel(application)
         }
     }
 
+    /**
+     * Transitions to [ParkingState.ExtensionDue] after validating the policy.
+     * The user must then call [confirmExtension] to launch the provider and extend.
+     */
     fun requestExtension(policy: ZonePolicy = defaultPolicy()) {
         val current = _uiState.value.parkingState
         val session = when (current) {
@@ -123,10 +127,19 @@ class ParkingViewModel(application: Application) : AndroidViewModel(application)
             applyStateChange(ParkingState.Error(session, result.reason))
             return
         }
+        // Move to ExtensionDue and wait for explicit user confirmation
         val newState = ParkingStateMachine.transition(current, ParkingEvent.ExtensionRequired)
         applyStateChange(newState)
-        // Then immediately confirm (or let user confirm via UI)
-        val confirmed = ParkingStateMachine.transition(newState, ParkingEvent.ExtendConfirmed)
+    }
+
+    /**
+     * Called by the user to explicitly confirm the extension shown in [ParkingState.ExtensionDue].
+     * Transitions to [ParkingState.Active] and launches the provider.
+     */
+    fun confirmExtension() {
+        val current = _uiState.value.parkingState
+        if (current !is ParkingState.ExtensionDue) return
+        val confirmed = ParkingStateMachine.transition(current, ParkingEvent.ExtendConfirmed)
         applyStateChange(confirmed)
         if (confirmed is ParkingState.Active) {
             launchProvider(confirmed.session)

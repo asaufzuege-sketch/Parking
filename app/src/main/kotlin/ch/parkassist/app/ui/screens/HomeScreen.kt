@@ -166,9 +166,17 @@ fun HomeScreen(vm: ParkingViewModel, onNavigateToLog: () -> Unit) {
                 }
             } else {
                 // Active session controls
-                val canExtend = uiState.parkingState is ParkingState.Active ||
-                    uiState.parkingState is ParkingState.ExtensionDue
-                if (canExtend) {
+                val isExtensionDue = uiState.parkingState is ParkingState.ExtensionDue
+                val canRequestExtension = uiState.parkingState is ParkingState.Active
+                if (isExtensionDue) {
+                    // User must explicitly confirm the extension
+                    Button(
+                        onClick = { vm.confirmExtension() },
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
+                        Text(stringResource(R.string.btn_confirm_action))
+                    }
+                } else if (canRequestExtension) {
                     OutlinedButton(
                         onClick = { vm.requestExtension() },
                         modifier = Modifier.fillMaxWidth(),

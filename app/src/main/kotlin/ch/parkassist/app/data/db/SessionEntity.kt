@@ -2,7 +2,6 @@ package ch.parkassist.app.data.db
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
-import ch.parkassist.app.domain.model.Provider
 
 @Entity(tableName = "sessions")
 data class SessionEntity(
