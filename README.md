@@ -2,6 +2,15 @@
 
 Ein Android-Prototyp für regelkonforme Parkier-Automatisierung.
 
+## APK herunterladen
+
+Die installierbaren Debug-APKs findest du unter **Actions → neuester erfolgreicher Lauf von „CI – Lint, Test & Build" → Artifacts**:
+
+- [`parking-assistant-debug-apk`](../../actions) – Haupt-App (Parking-Assistent)
+- [`mockparking-debug-apk`](../../actions) – Mock-Parking-Anbieter
+
+> Die Website unter GitHub Pages ist **nicht** die App. Lade die APKs oben herunter, entpacke die ZIP-Dateien und installiere zuerst `mockparking-debug.apk`, danach `app-debug.apk` auf deinem Android-Gerät.
+
 ## Zweck und Sicherheitsgrenzen
 
 Die App automatisiert **ausschliesslich zulässige Aktionen** gemäss den Regeln des Parkplatzbetreibers und der Parkzone:
