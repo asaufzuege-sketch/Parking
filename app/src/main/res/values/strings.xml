@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Parking-Assistent</string>
+
+    <!-- Provider names -->
+    <string name="provider_mock">Mock Parking</string>
+    <string name="provider_easypark">EasyPark</string>
+    <string name="provider_twint">TWINT Parking</string>
+
+    <!-- Input labels -->
+    <string name="label_provider">Anbieter</string>
+    <string name="label_zone">Parkzone</string>
+    <string name="label_plate">Kontrollschild</string>
+    <string name="label_duration_minutes">Ticketdauer (Minuten)</string>
+    <string name="label_max_extensions">Max. zulässige Verlängerungen</string>
+    <string name="label_start_time">Startzeit</string>
+    <string name="label_start_now">Jetzt starten</string>
+
+    <!-- Confirmation -->
+    <string name="confirm_title">Bestätigung erforderlich</string>
+    <string name="confirm_message">Ich bestätige, dass der gewählte Parkplatz und die Anbieterregeln diese Aktion ausdrücklich erlauben und keine Gratiszeitregel umgangen wird.</string>
+    <string name="confirm_button">Bestätigen und starten</string>
+    <string name="cancel_button">Abbrechen</string>
+
+    <!-- Controls -->
+    <string name="btn_start">Parkvorgang starten</string>
+    <string name="btn_stop">Parkvorgang stoppen</string>
+    <string name="btn_extend">Verlängern</string>
+    <string name="btn_confirm_action">Aktion bestätigen</string>
+
+    <!-- Status labels -->
+    <string name="status_idle">Bereit</string>
+    <string name="status_scheduled">Geplant</string>
+    <string name="status_launching">Anbieter wird gestartet…</string>
+    <string name="status_awaiting">Warte auf Anbieter-Rückmeldung</string>
+    <string name="status_active">Aktiv</string>
+    <string name="status_extension_due">Verlängerung fällig</string>
+    <string name="status_completed">Abgeschlossen</string>
+    <string name="status_cancelled">Abgebrochen</string>
+    <string name="status_error">Fehler</string>
+
+    <!-- Notifications -->
+    <string name="notif_channel_id">parking_session</string>
+    <string name="notif_channel_name">Parkvorgang</string>
+    <string name="notif_title_active">Parkvorgang aktiv</string>
+    <string name="notif_title_scheduled">Parkvorgang geplant</string>
+    <string name="notif_action_stop">Stoppen</string>
+
+    <!-- Errors -->
+    <string name="error_provider_not_found">Anbieter-App nicht installiert</string>
+    <string name="error_invalid_input">Ungültige Eingabe</string>
+    <string name="error_max_duration_exceeded">Maximale Parkdauer überschritten</string>
+    <string name="error_extension_not_allowed">Verlängerung gemäss Zonenregeln nicht erlaubt</string>
+    <string name="error_max_extensions_reached">Maximale Anzahl zulässiger Verlängerungen erreicht</string>
+    <string name="error_free_period_cycling">Erneuter Start einer Gratisperiode ist nicht erlaubt</string>
+
+    <!-- Log screen -->
+    <string name="screen_log">Aktivitätsprotokoll</string>
+    <string name="screen_home">Parkvorgang</string>
+    <string name="log_empty">Keine Einträge vorhanden.</string>
+
+    <!-- Misc -->
+    <string name="minutes_format">%d Min.</string>
+    <string name="extension_count_format">Verlängerung %1$d / %2$d</string>
+</resources>
