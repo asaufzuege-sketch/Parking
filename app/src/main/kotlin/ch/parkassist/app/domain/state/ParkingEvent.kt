@@ -7,6 +7,8 @@ sealed class ParkingEvent {
     data class Start(val session: ParkingSession) : ParkingEvent()
     object ProviderLaunched : ParkingEvent()
     object ProviderConfirmed : ParkingEvent()
+    object ProviderDenied : ParkingEvent()
+    object ProviderCancelled : ParkingEvent()
     object TicketActive : ParkingEvent()
     object ExtensionRequired : ParkingEvent()
     object ExtendConfirmed : ParkingEvent()

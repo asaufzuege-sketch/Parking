@@ -27,6 +27,7 @@
     <string name="btn_stop">Parkvorgang stoppen</string>
     <string name="btn_extend">Verlängern</string>
     <string name="btn_confirm_action">Aktion bestätigen</string>
+    <string name="btn_reset">Zurücksetzen</string>
 
     <!-- Status labels -->
     <string name="status_idle">Bereit</string>

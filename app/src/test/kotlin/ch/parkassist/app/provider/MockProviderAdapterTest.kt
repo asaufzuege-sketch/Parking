@@ -1,5 +1,6 @@
 package ch.parkassist.app.provider
 
+import android.content.Intent
 import org.junit.Assert.*
 import org.junit.Test
 
@@ -40,5 +41,10 @@ class MockProviderAdapterTest {
             MockProviderContract.ACTION_STOP,
         )
         assertEquals(actions.size, actions.toSet().size)
+    }
+
+    @Test
+    fun mockProviderIntentFlagsDoNotUseNewTask() {
+        assertEquals(0, MOCK_PROVIDER_INTENT_FLAGS and Intent.FLAG_ACTIVITY_NEW_TASK)
     }
 }

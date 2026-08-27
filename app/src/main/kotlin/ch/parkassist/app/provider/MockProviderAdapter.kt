@@ -28,7 +28,7 @@ object MockProviderAdapter : ProviderAdapter {
             putExtra(MockProviderContract.EXTRA_PLATE, session.licensePlate)
             putExtra(MockProviderContract.EXTRA_DURATION_MINUTES, session.ticketDurationMinutes)
             putExtra(MockProviderContract.EXTRA_SESSION_ID, session.id)
-            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            addFlags(MOCK_PROVIDER_INTENT_FLAGS)
         }
         val resolvable = context.packageManager.resolveActivity(intent, 0) != null
         return if (resolvable) LaunchResult.Success(intent)
@@ -45,3 +45,5 @@ object MockProviderAdapter : ProviderAdapter {
     const val STATUS_DENIED = MockProviderContract.STATUS_DENIED
     const val STATUS_ERROR = MockProviderContract.STATUS_ERROR
 }
+
+internal const val MOCK_PROVIDER_INTENT_FLAGS = 0

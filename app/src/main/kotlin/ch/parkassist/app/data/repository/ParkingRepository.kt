@@ -13,6 +13,8 @@ class ParkingRepository(
 
     fun observeLatestSession(): Flow<SessionEntity?> = sessionDao.observeLatest()
 
+    suspend fun getLatestRestorableSession(): SessionEntity? = sessionDao.getLatestRestorable()
+
     fun observeLog(): Flow<List<ActivityLogEntry>> =
         logDao.observeAll().map { list ->
             list.map { e ->

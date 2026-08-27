@@ -25,14 +25,26 @@ object ParkingStateMachine {
             current is ParkingState.Scheduled && event is ParkingEvent.ProviderLaunched ->
                 ParkingState.LaunchingProvider(current.session)
 
-            current is ParkingState.LaunchingProvider && event is ParkingEvent.ProviderConfirmed ->
+            current is ParkingState.LaunchingProvider && event is ParkingEvent.ProviderLaunched ->
                 ParkingState.AwaitingUser(current.session)
+
+            current is ParkingState.AwaitingUser && event is ParkingEvent.ProviderConfirmed -> {
+                val expires = Instant.now()
+                    .plusSeconds((current.session.ticketDurationMinutes * 60).toLong())
+                ParkingState.Active(current.session, expires)
+            }
 
             current is ParkingState.AwaitingUser && event is ParkingEvent.TicketActive -> {
                 val expires = Instant.now()
                     .plusSeconds((current.session.ticketDurationMinutes * 60).toLong())
                 ParkingState.Active(current.session, expires)
             }
+
+            current is ParkingState.AwaitingUser && event is ParkingEvent.ProviderDenied ->
+                ParkingState.Cancelled(current.session, Instant.now())
+
+            current is ParkingState.AwaitingUser && event is ParkingEvent.ProviderCancelled ->
+                ParkingState.Cancelled(current.session, Instant.now())
 
             current is ParkingState.Active && event is ParkingEvent.ExtensionRequired -> {
                 ParkingState.ExtensionDue(current.session, current.expiresAt)
