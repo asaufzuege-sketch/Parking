@@ -1,12 +1,20 @@
 package ch.parkassist.app.data.db
 
 import androidx.room.*
+import ch.parkassist.app.domain.state.ParkingStateNames
 import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface SessionDao {
     @Query("SELECT * FROM sessions ORDER BY id DESC LIMIT 1")
     fun observeLatest(): Flow<SessionEntity?>
+
+    @Query(
+        "SELECT * FROM sessions " +
+            "WHERE state NOT IN ('" + ParkingStateNames.COMPLETED + "', '" + ParkingStateNames.CANCELLED + "') " +
+            "ORDER BY id DESC LIMIT 1"
+    )
+    suspend fun getLatestRestorable(): SessionEntity?
 
     @Query("SELECT * FROM sessions WHERE id = :id")
     suspend fun getById(id: Long): SessionEntity?

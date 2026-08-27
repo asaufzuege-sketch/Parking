@@ -39,17 +39,31 @@ class StateMachineTest {
     }
 
     @Test
-    fun `LaunchingProvider + ProviderConfirmed results_in_AwaitingUser`() {
+    fun `LaunchingProvider + ProviderLaunched results_in_AwaitingUser`() {
         val state = ParkingState.LaunchingProvider(session)
-        val newState = ParkingStateMachine.transition(state, ParkingEvent.ProviderConfirmed)
+        val newState = ParkingStateMachine.transition(state, ParkingEvent.ProviderLaunched)
         assertTrue(newState is ParkingState.AwaitingUser)
     }
 
     @Test
-    fun `AwaitingUser + TicketActive results_in_Active`() {
+    fun `AwaitingUser + ProviderConfirmed results_in_Active`() {
         val state = ParkingState.AwaitingUser(session)
-        val newState = ParkingStateMachine.transition(state, ParkingEvent.TicketActive)
+        val newState = ParkingStateMachine.transition(state, ParkingEvent.ProviderConfirmed)
         assertTrue(newState is ParkingState.Active)
+    }
+
+    @Test
+    fun `AwaitingUser + ProviderDenied results_in_Cancelled`() {
+        val state = ParkingState.AwaitingUser(session)
+        val newState = ParkingStateMachine.transition(state, ParkingEvent.ProviderDenied)
+        assertTrue(newState is ParkingState.Cancelled)
+    }
+
+    @Test
+    fun `AwaitingUser + ProviderCancelled results_in_Cancelled`() {
+        val state = ParkingState.AwaitingUser(session)
+        val newState = ParkingStateMachine.transition(state, ParkingEvent.ProviderCancelled)
+        assertTrue(newState is ParkingState.Cancelled)
     }
 
     @Test

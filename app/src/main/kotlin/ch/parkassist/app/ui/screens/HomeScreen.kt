@@ -1,7 +1,5 @@
 package ch.parkassist.app.ui.screens
 
-import android.app.Activity
-import android.content.Intent
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
@@ -11,7 +9,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import ch.parkassist.app.R
@@ -24,23 +21,13 @@ import ch.parkassist.app.ui.ParkingViewModel
 @Composable
 fun HomeScreen(vm: ParkingViewModel, onNavigateToLog: () -> Unit) {
     val uiState by vm.uiState.collectAsState()
-    val context = LocalContext.current
-    var showConfirmDialog by remember { mutableStateOf(false) }
 
     // Launch provider activity and handle result
     val providerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartActivityForResult()
     ) { result ->
-        when (result.resultCode) {
-            Activity.RESULT_OK -> {
-                val status = result.data?.getStringExtra(MockProviderAdapter.RESULT_STATUS)
-                if (status == MockProviderAdapter.STATUS_CONFIRMED) {
-                    // ViewModel handles state via StateFlow
-                }
-            }
-            Activity.RESULT_CANCELED -> vm.stopParking()
-            else -> vm.stopParking()
-        }
+        val status = result.data?.getStringExtra(MockProviderAdapter.RESULT_STATUS)
+        vm.handleProviderResult(result.resultCode, status)
     }
 
     // Trigger intent launch when ViewModel sets it
@@ -164,6 +151,14 @@ fun HomeScreen(vm: ParkingViewModel, onNavigateToLog: () -> Unit) {
                 ) {
                     Text(stringResource(R.string.btn_start))
                 }
+                if (uiState.parkingState is ParkingState.Error) {
+                    OutlinedButton(
+                        onClick = { vm.resetError() },
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
+                        Text(stringResource(R.string.btn_reset))
+                    }
+                }
             } else {
                 // Active session controls
                 val isExtensionDue = uiState.parkingState is ParkingState.ExtensionDue
@@ -192,14 +187,6 @@ fun HomeScreen(vm: ParkingViewModel, onNavigateToLog: () -> Unit) {
                     )
                 ) {
                     Text(stringResource(R.string.btn_stop))
-                }
-                if (uiState.parkingState is ParkingState.Error) {
-                    OutlinedButton(
-                        onClick = { vm.resetError() },
-                        modifier = Modifier.fillMaxWidth(),
-                    ) {
-                        Text("Zurücksetzen")
-                    }
                 }
             }
         }

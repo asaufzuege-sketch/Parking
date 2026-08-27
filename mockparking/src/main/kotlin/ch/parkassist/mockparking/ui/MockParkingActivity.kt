@@ -46,6 +46,11 @@ class MockParkingActivity : ComponentActivity() {
         }
     }
 
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+    }
+
     private fun finishWithStatus(status: String) {
         setResult(Activity.RESULT_OK, Intent().putExtra(MockParkingContract.RESULT_STATUS, status))
         finish()
