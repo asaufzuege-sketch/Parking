@@ -46,7 +46,7 @@ Es wird **keine Accessibility-Automation** auf Drittanbieter-Apps verwendet. Sta
 ./gradlew :mockparking:testDebugUnitTest
 
 # Lint:
-./gradlew :app:lint :mockparking:lint
+./gradlew :app:lintDebug :mockparking:lintDebug
 
 # Instrumentierungs-Tests (Gerät/Emulator erforderlich):
 ./gradlew :app:connectedDebugAndroidTest
@@ -58,7 +58,7 @@ Nach jedem erfolgreichen CI-Durchlauf (Push auf `main` oder einen `copilot/**`-B
 
 | Artefakt-Name | Inhalt |
 |---------------|--------|
-| `app-debug-apk` | Parking-Assistent (Haupt-App) |
+| `parking-assistant-debug-apk` | Parking-Assistent (Haupt-App) |
 | `mockparking-debug-apk` | Mock-Parking-Anbieter |
 
 ### Download
@@ -66,7 +66,8 @@ Nach jedem erfolgreichen CI-Durchlauf (Push auf `main` oder einen `copilot/**`-B
 1. Gehe zu **Actions** im Repository auf GitHub.
 2. Wähle den gewünschten Workflow-Durchlauf aus.
 3. Scrolle zum Abschnitt **Artifacts** am Ende der Seite.
-4. Lade `app-debug-apk` und `mockparking-debug-apk` herunter und entpacke die ZIP-Dateien.
+4. Lade `parking-assistant-debug-apk` und `mockparking-debug-apk` herunter.
+   **Hinweis:** GitHub verpackt Artefakte als ZIP-Dateien. Entpacke die ZIP-Datei, um die eigentliche `.apk`-Datei zu erhalten.
 
 ### Installation via ADB
 
@@ -79,6 +80,8 @@ adb install -r app-debug.apk
 ```
 
 > **Voraussetzung:** USB-Debugging oder Wireless-ADB muss auf dem Gerät aktiviert sein (Einstellungen → Entwickleroptionen → USB-Debugging).
+>
+> **Manuelle Installation ohne ADB:** Übertrage die `.apk`-Datei auf das Gerät (z. B. per USB oder Cloud-Speicher). Aktiviere vorher **Unbekannte Quellen** (Einstellungen → Sicherheit → Unbekannte Apps zulassen) für deinen Dateimanager oder Browser. Installiere zuerst `mockparking-debug.apk`, danach `app-debug.apk`.
 
 ### Mock-Flow starten
 

@@ -206,6 +206,7 @@ fun HomeScreen(vm: ParkingViewModel, onNavigateToLog: () -> Unit) {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ProviderDropdown(selected: Provider, onSelect: (Provider) -> Unit) {
     var expanded by remember { mutableStateOf(false) }
