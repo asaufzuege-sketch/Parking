@@ -28,6 +28,7 @@
     <string name="btn_extend">Verlängern</string>
     <string name="btn_confirm_action">Aktion bestätigen</string>
     <string name="btn_reset">Zurücksetzen</string>
+    <string name="btn_clear_log">Löschen</string>
 
     <!-- Status labels -->
     <string name="status_idle">Bereit</string>
@@ -39,6 +40,10 @@
     <string name="status_completed">Abgeschlossen</string>
     <string name="status_cancelled">Abgebrochen</string>
     <string name="status_error">Fehler</string>
+    <string name="status_badge_active">AKTIV</string>
+    <string name="status_badge_waiting">WARTET</string>
+    <string name="status_badge_error">FEHLER</string>
+    <string name="status_badge_neutral">NEUTRAL</string>
 
     <!-- Notifications -->
     <string name="notif_channel_id">parking_session</string>
@@ -59,6 +64,13 @@
     <string name="screen_log">Aktivitätsprotokoll</string>
     <string name="screen_home">Parkvorgang</string>
     <string name="log_empty">Keine Einträge vorhanden.</string>
+    <string name="section_status">Status</string>
+    <string name="section_parking_details">Parkdetails</string>
+    <string name="section_active_session">Aktive Sitzung</string>
+    <string name="provider_mock_hint">Mock Parking ist ein Testanbieter ohne echte Buchung.</string>
+    <string name="content_desc_back">Zurück</string>
+    <string name="content_desc_validation_error">Fehlerhinweis</string>
+    <string name="content_desc_error_status">Fehlerstatus</string>
 
     <!-- Misc -->
     <string name="minutes_format">%d Min.</string>

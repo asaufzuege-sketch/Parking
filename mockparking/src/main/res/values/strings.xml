@@ -6,9 +6,12 @@
     <string name="btn_confirm_stop">Parkvorgang beenden (Mock)</string>
     <string name="btn_error">Fehler simulieren</string>
     <string name="btn_deny_extension">Verlängerung ablehnen</string>
+    <string name="mock_deny">Ablehnen</string>
     <string name="label_zone">Zone</string>
     <string name="label_plate">Kennzeichen</string>
     <string name="label_duration">Dauer</string>
     <string name="mock_title">Mock Parking</string>
     <string name="mock_prefilled">Vorausgefüllte Daten</string>
+    <string name="mock_prefilled_description">Testanbieter mit vorausgefüllten Daten. Bitte die Aktion manuell prüfen und dann bestätigen oder ablehnen.</string>
+    <string name="mock_test_provider">TESTANBIETER</string>
 </resources>
