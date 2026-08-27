@@ -3,7 +3,6 @@ package ch.parkassist.app.ui.theme
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CheckboxDefaults
-import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Shapes
@@ -228,4 +227,4 @@ fun parkingCheckboxColors() = CheckboxDefaults.colors(
     checkmarkColor = MaterialTheme.colorScheme.onPrimary,
 )
 
-fun ColorScheme.statusContainer(accent: Color): Color = accent.copy(alpha = 0.16f)
+fun statusContainer(accent: Color): Color = accent.copy(alpha = 0.16f)

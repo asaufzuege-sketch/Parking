@@ -39,6 +39,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.menuAnchor
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -79,7 +80,7 @@ fun HomeScreen(vm: ParkingViewModel, onNavigateToLog: () -> Unit) {
         vm.handleProviderResult(result.resultCode, status)
     }
 
-    androidx.compose.runtime.LaunchedEffect(uiState.pendingLaunchIntent) {
+    LaunchedEffect(uiState.pendingLaunchIntent) {
         uiState.pendingLaunchIntent?.let { intent ->
             providerLauncher.launch(intent)
             vm.clearPendingIntent()
@@ -375,7 +376,7 @@ private fun ParkingStatusCard(state: ParkingState, stateLabel: String) {
 @Composable
 private fun StatusBadge(label: String, accent: androidx.compose.ui.graphics.Color) {
     Surface(
-        color = MaterialTheme.colorScheme.statusContainer(accent),
+        color = statusContainer(accent),
         contentColor = accent,
         shape = MaterialTheme.shapes.small,
     ) {
@@ -444,7 +445,7 @@ private fun ValidationErrorCard(errorMessage: String) {
             androidx.compose.material3.Icon(
                 imageVector = Icons.Filled.ErrorOutline,
                 contentDescription = stringResource(R.string.content_desc_validation_error),
-                tint = MaterialTheme.colorScheme.primary,
+                tint = MaterialTheme.colorScheme.onErrorContainer,
             )
             Text(
                 text = errorMessage,
