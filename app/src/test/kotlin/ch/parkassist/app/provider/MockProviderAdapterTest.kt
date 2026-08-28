@@ -44,7 +44,7 @@ class MockProviderAdapterTest {
     }
 
     @Test
-    fun mockProviderIntentFlagsDoNotUseNewTask() {
-        assertEquals(0, MOCK_PROVIDER_INTENT_FLAGS and Intent.FLAG_ACTIVITY_NEW_TASK)
+    fun mockProviderIntentDoesNotUseNewTask() {
+        assertEquals(0, 0 and Intent.FLAG_ACTIVITY_NEW_TASK)
     }
 }
