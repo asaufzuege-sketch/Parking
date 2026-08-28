@@ -9,6 +9,7 @@
 
     <!-- Input labels -->
     <string name="label_provider">Anbieter</string>
+    <string name="label_provider_selected">Anbieter: %s</string>
     <string name="label_zone">Parkzone</string>
     <string name="label_plate">Kontrollschild</string>
     <string name="label_duration_minutes">Ticketdauer (Minuten)</string>

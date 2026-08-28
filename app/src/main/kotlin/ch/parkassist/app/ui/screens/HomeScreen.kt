@@ -42,7 +42,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -405,7 +404,6 @@ private fun ErrorDot(color: Color, contentDescription: String) {
             drawCircle(
                 color = color,
                 radius = size.minDimension / 2f,
-                center = Offset(size.width / 2f, size.height / 2f),
             )
         }
         Text(
@@ -502,7 +500,7 @@ private fun ProviderDropdown(selected: Provider, onSelect: (Provider) -> Unit) {
             ),
         ) {
             Text(
-                text = stringResource(R.string.label_provider) + ": " + selected.displayName,
+                text = stringResource(R.string.label_provider_selected, selected.displayName),
                 modifier = Modifier.weight(1f),
                 style = MaterialTheme.typography.bodyMedium,
             )
