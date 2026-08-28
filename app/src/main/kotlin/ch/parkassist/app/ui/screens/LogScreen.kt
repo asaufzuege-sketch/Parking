@@ -17,6 +17,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -35,6 +36,7 @@ import ch.parkassist.app.ui.theme.parkingTopAppBarColors
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LogScreen(vm: ParkingViewModel, onBack: () -> Unit) {
     val uiState by vm.uiState.collectAsState()
