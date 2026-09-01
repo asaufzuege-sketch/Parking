@@ -9,6 +9,8 @@ Die installierbaren Debug-APKs findest du unter **Actions → neuester erfolgrei
 - [`parking-assistant-debug-apk`](../../actions) – Haupt-App (Parking-Assistent)
 - [`mockparking-debug-apk`](../../actions) – Mock-Parking-Anbieter
 
+> **Troubleshooting:** Wenn kein Download sichtbar ist, war der Lauf nicht grün. APK-Artefakte erscheinen nur bei einem erfolgreichen Lauf im Abschnitt **Artifacts** ganz unten auf der Workflow-Seite.
+
 > Die Website unter GitHub Pages ist **nicht** die App. Lade die APKs oben herunter, entpacke die ZIP-Dateien und installiere zuerst `mockparking-debug.apk`, danach `app-debug.apk` auf deinem Android-Gerät.
 
 ## Zweck und Sicherheitsgrenzen
